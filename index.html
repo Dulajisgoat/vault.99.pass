@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault X — Organization Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Purple Liquid Glass */
+      --bg-1: #1a0b2e;
+      --bg-2: #2d1b4e;
+      --bg-3: #0f0518;
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-strong: rgba(255, 255, 255, 0.12);
+      --glass-hover: rgba(255, 255, 255, 0.14);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-border-strong: rgba(255, 255, 255, 0.28);
+      --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 24px rgba(167, 139, 250, 0.08);
+      --text: #ffffff;
+      --text-soft: #e0d4ff;
+      --text-muted: rgba(224, 212, 255, 0.58);
+      --accent: #a78bfa;
+      --accent-hover: #c4b5fd;
+      --accent-deep: #8b5cf6;
+      --success: #86efac;
+      --danger: #fca5a5;
+      --shadow-soft: 0 24px 60px rgba(8, 2, 20, 0.55);
+      --shadow-md: 0 8px 24px rgba(8, 2, 20, 0.4);
+      --glow: 0 0 0 1px rgba(196, 181, 253, 0.35), 0 6px 24px rgba(167, 139, 250, 0.45);
+      --radius: 12px;
+      --radius-card: 16px;
+      --radius-dialog: 24px;
+      --blur: blur(16px) saturate(140%);
+      --t: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      --serif: 'DM Serif Display', Georgia, serif;
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      color: var(--text);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+      background-attachment: fixed;
+    }
+
+    ::selection { background: rgba(167, 139, 250, 0.45); color: #fff; }
+
+    /* ============================================================
+       LIQUID BACKGROUND
+       ============================================================ */
+    .liquid-bg {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.65;
+      will-change: transform;
+    }
+    .blob.b1 {
+      width: 52vmax; height: 52vmax;
+      top: -18vmax; left: -14vmax;
+      background: radial-gradient(circle at 35% 35%, rgba(167, 139, 250, 0.95), rgba(124, 58, 237, 0.25) 60%, transparent 72%);
+      animation: drift1 26s ease-in-out infinite alternate;
+    }
+    .blob.b2 {
+      width: 46vmax; height: 46vmax;
+      bottom: -16vmax; right: -12vmax;
+      background: radial-gradient(circle at 60% 40%, rgba(96, 165, 250, 0.85), rgba(79, 70, 229, 0.25) 60%, transparent 72%);
+      animation: drift2 32s ease-in-out infinite alternate;
+    }
+    .blob.b3 {
+      width: 34vmax; height: 34vmax;
+      top: 30%; left: 42%;
+      background: radial-gradient(circle at 50% 50%, rgba(192, 132, 252, 0.75), rgba(147, 51, 234, 0.2) 60%, transparent 72%);
+      animation: drift3 38s ease-in-out infinite alternate;
+    }
+    .blob.b4 {
+      width: 28vmax; height: 28vmax;
+      bottom: 6%; left: 6%;
+      background: radial-gradient(circle at 50% 50%, rgba(129, 140, 248, 0.7), rgba(99, 102, 241, 0.18) 60%, transparent 72%);
+      animation: drift4 30s ease-in-out infinite alternate;
+    }
+    @keyframes drift1 {
+      0%   { transform: translate(0, 0) scale(1); border-radius: 50% 50% 50% 50%; }
+      50%  { transform: translate(14vmax, 8vmax) scale(1.12); border-radius: 58% 42% 55% 45%; }
+      100% { transform: translate(6vmax, 18vmax) scale(0.95); border-radius: 44% 56% 46% 54%; }
+    }
+    @keyframes drift2 {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(-16vmax, -6vmax) scale(1.1); border-radius: 56% 44% 48% 52%; }
+      100% { transform: translate(-6vmax, -16vmax) scale(0.92); }
+    }
+    @keyframes drift3 {
+      0%   { transform: translate(0, 0) scale(0.9); }
+      50%  { transform: translate(-14vmax, 10vmax) scale(1.15); border-radius: 46% 54% 58% 42%; }
+      100% { transform: translate(10vmax, -8vmax) scale(1); }
+    }
+    @keyframes drift4 {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(18vmax, -12vmax) scale(1.2); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .blob { animation: none; }
+    }
+
+    /* ============================================================
+       LOGIN SCREEN
+       ============================================================ */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 2000;
+      overflow-y: auto;
+      transition: opacity 0.4s ease;
+    }
+    .login-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .login-shell {
+      width: 100%;
+      max-width: 420px;
+      margin: auto;
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-dialog);
+      box-shadow: var(--shadow-soft), var(--inner-glow);
+      padding: 48px 40px 32px;
+      position: relative;
+      animation: loginRise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .login-shell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(155deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 38%);
+      pointer-events: none;
+    }
+    @keyframes loginRise {
+      from { opacity: 0; transform: translateY(16px) scale(0.985); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .login-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .login-glyph {
+      width: 72px; height: 72px;
+      display: grid; place-items: center;
+      font-family: var(--serif);
+      font-size: 40px;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 14px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(167,139,250,0.55), rgba(139,92,246,0.25));
+      border: 1px solid var(--glass-border-strong);
+      box-shadow: 0 0 32px rgba(167, 139, 250, 0.5), var(--inner-glow);
+    }
+    .login-name {
+      font-family: var(--serif);
+      font-size: 30px;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .login-tagline {
+      text-align: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--glass-border);
+      position: relative;
+    }
+
+    .login-form-group { margin-bottom: 20px; position: relative; }
+    .login-form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+    .login-form-group input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      outline: none;
+      box-shadow: inset 0 2px 8px rgba(8, 2, 20, 0.25);
+      transition: var(--t);
+    }
+    .login-form-group input::placeholder { color: var(--text-muted); }
+    .login-form-group input:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.28), inset 0 2px 8px rgba(8, 2, 20, 0.2);
+    }
+
+    .login-button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      position: relative;
+    }
+    .btn-auth {
+      flex: 1;
+      padding: 13px 16px;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--t);
+      border: 1px solid transparent;
+    }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-auth-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      color: #1a0b2e;
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: var(--inner-glow), 0 4px 16px rgba(139, 92, 246, 0.35);
+    }
+    .btn-auth-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+      box-shadow: var(--glow);
+      transform: translateY(-1px);
+    }
+    .btn-auth-secondary {
+      background: var(--glass);
+      color: var(--text);
+      border-color: var(--glass-border);
+      box-shadow: var(--inner-glow);
+    }
+    .btn-auth-secondary:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--accent-hover);
+      background: var(--glass-hover);
+      box-shadow: 0 0 20px rgba(167, 139, 250, 0.3), var(--inner-glow);
+      transform: translateY(-1px);
+    }
+
+    .login-message {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 13px;
+      min-height: 18px;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+      position: relative;
+    }
+    .login-message.error { color: var(--danger); }
+    .login-message.success { color: var(--success); }
+    .login-message.loading { color: var(--accent-hover); }
+
+    .login-footer {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    .powered-by {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+    .powered-by .uniclvrpass {
+      font-weight: 600;
+      color: var(--text-soft);
+      letter-spacing: 0.06em;
+    }
+
+    /* ============================================================
+       APP LAYOUT (Organization Manager)
+       ============================================================ */
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: 100vh;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .sidebar {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md), var(--inner-glow);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 24px 24px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-glyph {
+      width: 34px; height: 34px;
+      display: grid; place-items: center;
+      font-family: var(--serif);
+      font-size: 20px;
+      color: #fff;
+      line-height: 1;
+      border-radius: 11px;
+      background: linear-gradient(135deg, rgba(167,139,250,0.55), rgba(139,92,246,0.25));
+      border: 1px solid var(--glass-border-strong);
+      box-shadow: 0 0 16px rgba(167, 139, 250, 0.4);
+    }
+    .brand-name {
+      font-family: var(--serif);
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .sidebar-list-head {
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--glass-border);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+    .btn-new {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      color: #1a0b2e;
+      border: 1px solid rgba(255,255,255,0.25);
+      cursor: pointer;
+      display: grid; place-items: center;
+      border-radius: 9px;
+      transition: var(--t);
+    }
+    .btn-new:hover { box-shadow: var(--glow); transform: translateY(-1px); }
+    .btn-new svg { width: 14px; height: 14px; }
+
+    .org-list { flex: 1; overflow-y: auto; padding: 10px; }
+    .org-list::-webkit-scrollbar { width: 4px; }
+    .org-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+    .org-list::-webkit-scrollbar-track { background: transparent; }
+
+    .org-item {
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: var(--t);
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+    }
+    .org-item:hover { background: var(--glass); }
+    .org-item.active {
+      background: linear-gradient(135deg, rgba(167,139,250,0.22), rgba(167,139,250,0.08));
+      border-color: rgba(196, 181, 253, 0.35);
+      box-shadow: var(--inner-glow), 0 0 20px rgba(167, 139, 250, 0.18);
+    }
+
+    .org-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .org-item.active .org-dot { background: var(--accent-hover); box-shadow: 0 0 10px var(--accent); }
+
+    .org-item-content { flex: 1; min-width: 0; }
+    .org-item-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .org-item.active .org-item-title { color: #fff; font-weight: 600; }
+    .org-item-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-footer {
+      padding: 14px 24px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .footer-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-soft);
+      font-weight: 500;
+      min-width: 0;
+    }
+    .footer-user span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .footer-user .user-glyph {
+      width: 24px; height: 24px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      color: #1a0b2e;
+      display: grid; place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .footer-link {
+      cursor: pointer;
+      transition: var(--t);
+      text-decoration: none;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .footer-link:hover { color: var(--accent-hover); }
+
+    /* ========== Main Area ========== */
+    .main-area {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-width: 0;
+      background: transparent;
+    }
+
+    .main-top-bar {
+      height: 56px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md), var(--inner-glow);
+      z-index: 10;
+    }
+
+    .status-indicator {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.02em;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: var(--t);
+    }
+    .status-indicator.saved { color: var(--success); }
+    .status-indicator.saved .status-dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
+    .status-indicator.loading { color: var(--accent-hover); }
+    .status-indicator.loading .status-dot { background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .main-actions { display: flex; gap: 8px; }
+    .btn-action {
+      height: 34px;
+      padding: 0 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text-soft);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: var(--inner-glow);
+      transition: var(--t);
+    }
+    .btn-action:hover {
+      border-color: var(--accent);
+      color: var(--accent-hover);
+      background: var(--glass-hover);
+      box-shadow: 0 0 18px rgba(167, 139, 250, 0.3), var(--inner-glow);
+    }
+    .btn-action.primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      color: #1a0b2e;
+      border-color: rgba(255, 255, 255, 0.28);
+      box-shadow: var(--inner-glow), 0 4px 14px rgba(139, 92, 246, 0.35);
+    }
+    .btn-action.primary:hover {
+      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+      color: #1a0b2e;
+      box-shadow: var(--glow);
+    }
+    .btn-action.danger:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      box-shadow: 0 0 18px rgba(252, 165, 165, 0.3), var(--inner-glow);
+    }
+
+    .main-scroll {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 8px;
+      border-radius: var(--radius-card);
+    }
+    .main-scroll::-webkit-scrollbar { width: 8px; }
+    .main-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+    .main-scroll::-webkit-scrollbar-track { background: transparent; }
+
+    .main-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .org-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .org-title {
+      font-family: var(--serif);
+      font-size: 48px;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      word-break: break-word;
+      text-shadow: 0 0 40px rgba(167, 139, 250, 0.5);
+    }
+
+    .org-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .org-meta .dot {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-muted);
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--inner-glow);
+    }
+    .empty-state svg {
+      width: 52px; height: 52px;
+      margin-bottom: 16px;
+      stroke: var(--accent);
+      filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.6));
+    }
+    .empty-state-title {
+      font-family: var(--serif);
+      font-size: 26px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .empty-state-text { font-size: 14px; color: var(--text-soft); opacity: 0.8; max-width: 360px; margin: 0 auto; line-height: 1.55; }
+
+    /* Accounts Table */
+    .table-wrapper {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md), var(--inner-glow);
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      transition: background 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(167, 139, 250, 0.1); }
+
+    .td-username { font-weight: 600; color: #fff; word-break: break-all; }
+    .checkbox-cell {
+      width: 40px;
+      padding-right: 0;
+    }
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--glass-border-strong);
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      background: rgba(255, 255, 255, 0.06);
+      vertical-align: middle;
+      transition: var(--t);
+    }
+    input[type="checkbox"]:hover { border-color: var(--accent); }
+    input[type="checkbox"]:checked {
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      border-color: var(--accent-hover);
+      box-shadow: 0 0 12px rgba(167, 139, 250, 0.55);
+    }
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5.5px;
+      top: 1.5px;
+      width: 4px;
+      height: 9px;
+      border: solid #1a0b2e;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .btn-row {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 9px;
+      padding: 7px 12px;
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-soft);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--t);
+    }
+    .btn-row svg { width: 12px; height: 12px; }
+    .btn-row:hover {
+      border-color: var(--accent);
+      color: var(--accent-hover);
+      background: rgba(167, 139, 250, 0.14);
+      box-shadow: 0 0 14px rgba(167, 139, 250, 0.3);
+    }
+    .btn-row.danger:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(252, 165, 165, 0.1);
+      box-shadow: 0 0 14px rgba(252, 165, 165, 0.25);
+    }
+
+    /* Dialogs */
+    .dialog-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 5, 24, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 3000;
+      opacity: 0;
+      overflow-y: auto;
+      transition: opacity 0.2s ease;
+    }
+    .dialog-overlay.active {
+      display: flex; opacity: 1;
+    }
+
+    .dialog-box {
+      position: relative;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid var(--glass-border-strong);
+      border-radius: var(--radius-dialog);
+      box-shadow: var(--shadow-soft), var(--inner-glow);
+      width: 100%;
+      max-width: 480px;
+      margin: auto;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+      padding: 32px;
+    }
+    .dialog-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(155deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 35%);
+      pointer-events: none;
+    }
+    .dialog-overlay.active .dialog-box {
+      transform: translateY(0) scale(1);
+    }
+
+    .dialog-title {
+      font-family: var(--serif);
+      font-size: 30px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .dialog-text {
+      font-size: 14px;
+      color: var(--text-soft);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .dialog-text strong { color: #fff; }
+    .dialog-input-group {
+      margin-bottom: 16px;
+    }
+    .dialog-input-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+    .dialog-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      border-radius: var(--radius);
+      outline: none;
+      box-shadow: inset 0 2px 8px rgba(8, 2, 20, 0.25);
+      transition: var(--t);
+    }
+    .dialog-input::placeholder { color: var(--text-muted); }
+    .dialog-input:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.28), inset 0 2px 8px rgba(8, 2, 20, 0.2);
+    }
+    .dialog-input.mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: 1px; }
+
+    .toggle-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      transition: var(--t);
+    }
+    .toggle-btn:hover { color: var(--text-soft); }
+    .toggle-btn.active {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      color: #1a0b2e;
+      border-color: rgba(255, 255, 255, 0.28);
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    }
+
+    .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; flex-wrap: wrap; position: relative; }
+    .btn-primary {
+      padding: 11px 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--inner-glow);
+      transition: var(--t);
+    }
+    .btn-primary:hover {
+      border-color: var(--glass-border-strong);
+      background: var(--glass-hover);
+      transform: translateY(-1px);
+    }
+    .btn-primary.destructive {
+      background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #3b0a12;
+      box-shadow: var(--inner-glow), 0 4px 16px rgba(248, 113, 113, 0.3);
+    }
+    .btn-primary.destructive:hover {
+      background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+      box-shadow: 0 0 0 1px rgba(252, 165, 165, 0.4), 0 6px 24px rgba(252, 165, 165, 0.45);
+    }
+    .btn-primary.main {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #1a0b2e;
+      box-shadow: var(--inner-glow), 0 4px 16px rgba(139, 92, 246, 0.35);
+    }
+    .btn-primary.main:hover {
+      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+      box-shadow: var(--glow);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 4000;
+      pointer-events: none;
+    }
+    .toast {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      border: 1px solid var(--glass-border);
+      padding: 13px 18px;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md), var(--inner-glow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: auto;
+      min-width: 250px;
+      max-width: 90vw;
+    }
+    .toast.exit { animation: slideOut 0.25s ease forwards; }
+    .toast svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .toast.success { border-color: rgba(134, 239, 172, 0.35); }
+    .toast.error { border-color: rgba(252, 165, 165, 0.4); }
+    .toast.success svg { color: var(--success); filter: drop-shadow(0 0 6px rgba(134, 239, 172, 0.6)); }
+    .toast.error svg { color: var(--danger); filter: drop-shadow(0 0 6px rgba(252, 165, 165, 0.6)); }
+    @keyframes slideIn {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes slideOut { to { transform: translateY(12px); opacity: 0; } }
+
+    /* ============================================================
+       RESPONSIVE — sidebar collapses to a compact top bar
+       ============================================================ */
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 10px;
+        padding: 10px;
+      }
+      .sidebar {
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 4px;
+      }
+      .sidebar-header { padding: 12px 8px 12px 16px; }
+      .brand-name { display: none; }
+      .sidebar-list-head { display: none; }
+      .org-list { padding: 6px 4px; overflow: hidden; min-width: 0; }
+      .org-item { padding: 8px 12px; }
+      .org-item-sub { display: none; }
+      .sidebar-footer { border-top: none; padding: 12px 16px 12px 8px; }
+      .footer-user span:last-child { max-width: 80px; }
+      .main-top-bar { padding: 0 12px; }
+      .btn-action { padding: 0 12px; }
+      .main-inner { padding: 28px 8px 80px; }
+      .org-title { font-size: 34px; }
+      .login-shell { padding: 40px 26px 26px; }
+      .dialog-box { padding: 26px 22px; }
+      .toast-container { left: 50%; right: auto; bottom: 20px; transform: translateX(-50%); width: calc(100% - 32px); align-items: center; }
+      .toast { min-width: 0; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .status-indicator #statusText { display: none; }
+      .th-hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============ LIQUID BACKGROUND ============ -->
+<div class="liquid-bg" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+</div>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-shell">
+    <div class="login-brand">
+      <div class="login-glyph">V</div>
+      <div class="login-name">Vault X</div>
+    </div>
+    <div class="login-tagline">vault x got you covered</div>
+
+    <form id="authForm">
+      <div class="login-form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="enter username" required autocomplete="off" />
+      </div>
+
+      <div class="login-form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="enter password" required autocomplete="off" />
+      </div>
+
+      <div class="login-button-group">
+        <button type="button" class="btn-auth btn-auth-primary" id="registerBtn">Register</button>
+        <button type="button" class="btn-auth btn-auth-secondary" id="loginBtn">Login</button>
+      </div>
+
+      <div class="login-message" id="message"></div>
+    </form>
+
+    <div class="login-footer">
+      <div class="powered-by">powered by <span class="uniclvrpass">Vault X</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app" style="display:none;">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-glyph">V</div>
+        <span class="brand-name">Vault X</span>
+      </div>
+    </div>
+
+    <div class="sidebar-list-head">
+      <span class="sidebar-title">Organizations</span>
+      <button class="btn-new" id="newOrgBtn" title="Create Organization" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="org-list" id="orgList">
+      <!-- Orgs dynamically injected here -->
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="footer-row">
+        <div class="footer-user">
+          <span class="user-glyph" id="userGlyph">U</span>
+          <span id="footerUsername">user</span>
+        </div>
+        <a class="footer-link" id="logoutLink" title="Sign out">Sign out</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <div class="main-top-bar">
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+      <div class="main-actions">
+        <button class="btn-action primary" id="addAccountBtn">Add Account</button>
+        <button class="btn-action danger" id="bulkDeleteBtn" style="display:none;">Delete Selected</button>
+      </div>
+    </div>
+
+    <div class="main-scroll">
+      <div class="main-inner" id="mainContent">
+        <!-- Dynamic Table/Empty State injected here -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ DIALOGS ============ -->
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog-box" id="dialogBox">
+    <!-- Dialog content injected dynamically -->
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  // Base URL for edge functions
+  const SUPABASE_FUNCTIONS_URL = 'https://lbujqhnadkwqgojbhalw.supabase.co/functions/v1';
+  
+  // Helper to correctly route to different edge functions dynamically
+  function getApiUrl(action) {
+    return action === 'login' || action === 'register'
+      ? `${SUPABASE_FUNCTIONS_URL}/auth`
+      : `${SUPABASE_FUNCTIONS_URL}/manage-organizations`;
+  }
+
+  /* ---------- Auth / Session ---------- */
+  function getStoredSession() {
+    try {
+      const userId = localStorage.getItem('userId');
+      const username = localStorage.getItem('username');
+      const authToken = localStorage.getItem('authToken');
+      if (userId && username && authToken) return { userId, username, authToken };
+    } catch {}
+    return null;
+  }
+  function clearSession() {
+    try {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
+      localStorage.removeItem('authToken');
+    } catch {}
+  }
+
+  /* ---------- Login Screen Logic ---------- */
+  const loginScreen = document.getElementById('loginScreen');
+  const appEl = document.getElementById('app');
+  const messageEl = document.getElementById('message');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const registerBtn = document.getElementById('registerBtn');
+  const loginBtn = document.getElementById('loginBtn');
+
+  function showLoginMessage(text, type = 'error') {
+    messageEl.textContent = text;
+    messageEl.className = `login-message ${type}`;
+  }
+
+  function enterApp() {
+    loginScreen.classList.add('hidden');
+    appEl.style.display = 'grid';
+    initManager();
+  }
+
+  function showLogin() {
+    appEl.style.display = 'none';
+    loginScreen.classList.remove('hidden');
+    usernameInput.value = '';
+    passwordInput.value = '';
+    messageEl.textContent = '';
+    messageEl.className = 'login-message';
+    setTimeout(() => usernameInput.focus(), 100);
+  }
+
+  async function auth(action) {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) {
+      showLoginMessage('Please enter username and password');
+      return;
+    }
+
+    showLoginMessage('Processing...', 'loading');
+    registerBtn.disabled = true;
+    loginBtn.disabled = true;
+
+    try {
+      const response = await fetch(getApiUrl(action), {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showLoginMessage(`HTTP ${response.status}: ${data.error || 'Server error'}`);
+        return;
+      }
+
+      if (data.success) {
+        showLoginMessage(
+          action === 'register' ? 'Account created — welcome to Vault X' : 'Welcome back to Vault X',
+          'success'
+        );
+        localStorage.setItem('userId', data.userId);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('authToken', data.token);
+        setTimeout(() => enterApp(), 700);
+      } else {
+        showLoginMessage(data.error || 'Authentication failed');
+      }
+    } catch (error) {
+      showLoginMessage('Error: ' + error.message);
+    } finally {
+      registerBtn.disabled = false;
+      loginBtn.disabled = false;
+    }
+  }
+
+  registerBtn.addEventListener('click', (e) => { e.preventDefault(); auth('register'); });
+  loginBtn.addEventListener('click', (e) => { e.preventDefault(); auth('login'); });
+  document.getElementById('authForm').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); auth('login'); }
+  });
+
+  /* ============================================================
+     ORGANIZATION MANAGER LOGIC
+     ============================================================ */
+  let ownerUsername = ""; // e.g. "synapse"
+  let orgNamespace = "";  // e.g. "synapse@"
+  let selectedAccounts = new Set();
+  let accountCache = []; 
+
+  const orgListEl = document.getElementById('orgList');
+  const mainContentEl = document.getElementById('mainContent');
+  const statusIndicator = document.getElementById('statusIndicator');
+  const statusText = document.getElementById('statusText');
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  const addAccountBtn = document.getElementById('addAccountBtn');
+  const logoutLink = document.getElementById('logoutLink');
+  const footerUsername = document.getElementById('footerUsername');
+  const userGlyph = document.getElementById('userGlyph');
+
+  /* ---------- Toasts ---------- */
+  function toast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    const icon = type === 'success'
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+    el.innerHTML = `${icon}<span>${msg}</span>`;
+    document.getElementById('toastContainer').appendChild(el);
+    setTimeout(() => {
+      el.classList.add('exit');
+      setTimeout(() => el.remove(), 250);
+    }, 3500);
+  }
+
+  function setStatus(status) {
+    if (status === 'ready') {
+      statusText.textContent = 'Ready';
+      statusIndicator.className = 'status-indicator';
+    } else if (status === 'loading') {
+      statusText.textContent = 'Working…';
+      statusIndicator.className = 'status-indicator loading';
+    } else if (status === 'saved') {
+      statusText.textContent = 'Done';
+      statusIndicator.className = 'status-indicator saved';
+      setTimeout(() => setStatus('ready'), 1800);
+    }
+  }
+
+  /* ---------- API Calls ---------- */
+  async function apiCall(body) {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      showLogin();
+      throw new Error("Not authenticated");
+    }
+
+    try {
+      const response = await fetch(getApiUrl(body.action), {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API Call Failed:', error);
+      throw error;
+    }
+  }
+
+  /* ---------- Initialization ---------- */
+  async function initManager() {
+    const session = getStoredSession();
+    if (!session) return showLogin();
+
+    footerUsername.textContent = session.username;
+    userGlyph.textContent = session.username.charAt(0).toUpperCase();
+
+    ownerUsername = session.username;
+    orgNamespace = ownerUsername + "@";
+
+    renderAppUI();
+  }
+
+  function renderAppUI() {
+    // Display the clean username everywhere, no @ symbol
+    orgListEl.innerHTML = `
+      <div class="org-item active">
+        <span class="org-dot"></span>
+        <div class="org-item-content">
+          <div class="org-item-title">${ownerUsername}</div>
+          <div class="org-item-sub">Personal Organization</div>
+        </div>
+      </div>
+    `;
+
+    fetchAccounts(); // Fetch accounts from Edge Function
+  }
+
+  // Fetch all associated sub-accounts for the logged-in user
+  async function fetchAccounts() {
+    try {
+      setStatus('loading');
+      const res = await apiCall({ action: "list_accounts" });
+      
+      if (res.success && Array.isArray(res.accounts)) {
+        accountCache = res.accounts; // Update local cache
+        renderAccountsTable(accountCache);
+      } else {
+        renderEmptyState();
+      }
+    } catch (error) {
+      toast(error.message, 'error');
+      renderEmptyState();
+    } finally {
+      setStatus('ready');
+    }
+  }
+
+  function renderEmptyState() {
+    mainContentEl.innerHTML = `
+      <div class="org-header">
+        <div>
+          <div class="org-title">${ownerUsername}</div>
+        </div>
+      </div>
+      <div class="org-meta">
+        <span>Organization</span>
+        <span class="dot"></span>
+        <span>Active</span>
+      </div>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <div class="empty-state-title">No Sub-Accounts Yet</div>
+        <div class="empty-state-text">Create your first sub-account to manage access for this organization.</div>
+      </div>
+    `;
+  }
+
+  function renderAccountsTable(accounts) {
+    if (!accounts || accounts.length === 0) {
+      renderEmptyState();
+      return;
+    }
+
+    selectedAccounts.clear();
+    bulkDeleteBtn.style.display = 'none';
+
+    const rowsHtml = accounts.map(acc => `
+      <tr>
+        <td class="checkbox-cell">
+          <input type="checkbox" data-user="${acc.username}" class="row-checkbox">
+        </td>
+        <td class="td-username">${acc.username}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-row" data-action="reroll" data-user="${acc.username}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+              Reroll
+            </button>
+            <button class="btn-row danger" data-action="delete" data-user="${acc.username}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    mainContentEl.innerHTML = `
+      <div class="org-header">
+        <div>
+          <div class="org-title">${ownerUsername}</div>
+        </div>
+      </div>
+      <div class="org-meta">
+        <span>Accounts</span>
+        <span class="dot"></span>
+        <span>${accounts.length} total</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="checkbox-cell">
+                <input type="checkbox" id="selectAll">
+              </th>
+              <th>Username</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    attachTableEventListeners();
+  }
+
+  function attachTableEventListeners() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const user = e.target.dataset.user;
+        if (e.target.checked) selectedAccounts.add(user);
+        else selectedAccounts.delete(user);
+        updateBulkDeleteBtn();
+      });
+    });
+
+    const selectAllCb = document.getElementById('selectAll');
+    if (selectAllCb) {
+      selectAllCb.addEventListener('change', (e) => {
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+          cb.checked = e.target.checked;
+          if (e.target.checked) selectedAccounts.add(cb.dataset.user);
+          else selectedAccounts.delete(cb.dataset.user);
+        });
+        updateBulkDeleteBtn();
+      });
+    }
+
+    document.querySelectorAll('.btn-row').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        const user = btn.dataset.user;
+        // The username in the dataset is fully-qualified (e.g. clover@synapse).
+        if (action === 'reroll') openRerollDialog(user);
+        else if (action === 'delete') openDeleteDialog([user]);
+      });
+    });
+  }
+
+  function updateBulkDeleteBtn() {
+    if (selectedAccounts.size > 0) {
+      bulkDeleteBtn.style.display = 'flex';
+      bulkDeleteBtn.textContent = `Delete Selected (${selectedAccounts.size})`;
+    } else {
+      bulkDeleteBtn.style.display = 'none';
+    }
+  }
+
+  /* ---------- Dialog Management ---------- */
+  const dialogOverlay = document.getElementById('dialogOverlay');
+  const dialogBox = document.getElementById('dialogBox');
+
+  function closeDialog() {
+    dialogOverlay.classList.remove('active');
+  }
+
+  dialogOverlay.addEventListener('click', (e) => {
+    if (e.target === dialogOverlay) closeDialog();
+  });
+
+  /* ---------- Add Account Dialog ---------- */
+  addAccountBtn.addEventListener('click', () => {
+    const dialogHtml = `
+      <div class="dialog-title">Add Sub-Account</div>
+      <div class="dialog-text">Create a new account under the <strong>${ownerUsername}</strong> organization.</div>
+      
+      <div class="dialog-input-group">
+        <label>Username</label>
+        <input type="text" id="subUsernameInput" class="dialog-input" placeholder="name" autocomplete="off">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+          Final username: <span id="fullUsernamePreview">name@${ownerUsername}</span>
+        </div>
+      </div>
+
+      <div class="dialog-input-group">
+        <label>Password Method</label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="randomPassBtn">Generate Random</button>
+          <button class="toggle-btn" id="customPassBtn">Custom Password</button>
+        </div>
+      </div>
+
+      <div class="dialog-input-group" id="customPassGroup" style="display:none;">
+        <label>Custom Password</label>
+        <input type="text" id="customPassInput" class="dialog-input" placeholder="Min 6 characters">
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn-primary" id="cancelDialog">Cancel</button>
+        <button class="btn-primary main" id="confirmAddAccount">Create Account</button>
+      </div>
+    `;
+    dialogBox.innerHTML = dialogHtml;
+    dialogOverlay.classList.add('active');
+
+    const subInput = document.getElementById('subUsernameInput');
+    const preview = document.getElementById('fullUsernamePreview');
+    subInput.addEventListener('input', () => {
+      preview.textContent = `${subInput.value || 'name'}@${ownerUsername}`;
+    });
+
+    const randomBtn = document.getElementById('randomPassBtn');
+    const customBtn = document.getElementById('customPassBtn');
+    const customPassGroup = document.getElementById('customPassGroup');
+
+    randomBtn.onclick = () => {
+      randomBtn.classList.add('active');
+      customBtn.classList.remove('active');
+      customPassGroup.style.display = 'none';
+    };
+    customBtn.onclick = () => {
+      customBtn.classList.add('active');
+      randomBtn.classList.remove('active');
+      customPassGroup.style.display = 'block';
+    };
+
+    document.getElementById('cancelDialog').onclick = closeDialog;
+    document.getElementById('confirmAddAccount').onclick = async () => {
+      const sub = subInput.value.trim();
+      if (!sub || !/^[a-zA-Z0-9]+$/.test(sub)) {
+        toast('Invalid username. Use only letters and numbers.', 'error');
+        return;
+      }
+
+      const useRandom = randomBtn.classList.contains('active');
+      const customPass = document.getElementById('customPassInput').value;
+
+      try {
+        setStatus('loading');
+        
+        // Attempt to add the account directly. 
+        // If the org doesn't exist yet, it will throw the specific error.
+        try {
+          const res = await apiCall({
+            action: 'add_account',
+            subUsername: sub,
+            useRandomPassword: useRandom,
+            customPassword: useRandom ? null : customPass
+          });
+          openCredentialsDialog(res.username, res.password, res.randomGenerated);
+        } catch (err) {
+          // THE MAGIC FIX: If the backend complains the org doesn't exist, create it instantly, then retry!
+          if (err.message.includes("You must create an organization first")) {
+            await apiCall({ action: 'create_organization' });
+            
+            // Retry creating the account now that the namespace exists
+            const res = await apiCall({
+              action: 'add_account',
+              subUsername: sub,
+              useRandomPassword: useRandom,
+              customPassword: useRandom ? null : customPass
+            });
+            openCredentialsDialog(res.username, res.password, res.randomGenerated);
+          } else {
+            // If it's a different error (like duplicate username), throw it to the outer catch
+            throw err;
+          }
+        }
+      } catch(e) {
+        toast(e.message, 'error');
+      } finally {
+        setStatus('saved');
+      }
+    };
+  });
+
+  /* ---------- Credentials Dialog (after adding) ---------- */
+  function openCredentialsDialog(username, password, isRandom) {
+    dialogBox.innerHTML = `
+      <div class="dialog-title">Account Created</div>
+      <div class="dialog-text">
+        ${isRandom ? 'A secure random password was generated.' : 'Account is ready.'} 
+        Please copy the credentials now. For security reasons, the password will not be shown again.
+      </div>
+
+      <div class="dialog-input-group">
+        <label>Username</label>
+        <input type="text" class="dialog-input mono" value="${username}" readonly>
+      </div>
+
+      <div class="dialog-input-group">
+        <label>Password</label>
+        <input type="text" class="dialog-input mono" value="${password}" readonly>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn-primary" id="copyCredsBtn">Copy Credentials</button>
+        <button class="btn-primary main" id="acceptCredsBtn">I've saved them</button>
+      </div>
+    `;
+    dialogOverlay.classList.add('active');
+
+    document.getElementById('copyCredsBtn').onclick = () => {
+      const text = `Username: ${username}\nPassword: ${password}`;
+      navigator.clipboard.writeText(text).then(() => {
+        toast('Credentials copied to clipboard');
+      });
+    };
+
+    document.getElementById('acceptCredsBtn').onclick = () => {
+      fetchAccounts(); // Refresh from backend instead of pushing to local array
+      closeDialog();
+    };
+  }
+
+  /* ---------- Reroll Password Dialog ---------- */
+  function openRerollDialog(username) {
+    dialogBox.innerHTML = `
+      <div class="dialog-title">Reroll Password</div>
+      <div class="dialog-text">
+        Are you sure you want to generate a new password for <strong>${username}</strong>? 
+        The old password will immediately stop working.
+      </div>
+      <div class="dialog-actions">
+        <button class="btn-primary" id="cancelDialog">Cancel</button>
+        <button class="btn-primary main" id="confirmReroll">Generate New Password</button>
+      </div>
+    `;
+    dialogOverlay.classList.add('active');
+
+    document.getElementById('cancelDialog').onclick = closeDialog;
+    document.getElementById('confirmReroll').onclick = async () => {
+      try {
+        setStatus('loading');
+        const res = await apiCall({
+          action: 'reroll_password',
+          targetUsername: username
+        });
+        openNewPasswordDialog(res.username, res.newPassword);
+      } catch(e) {
+        toast(e.message, 'error');
+        setStatus('ready');
+      }
+    };
+  }
+
+  function openNewPasswordDialog(username, newPassword) {
+    dialogBox.innerHTML = `
+      <div class="dialog-title">Password Updated</div>
+      <div class="dialog-text">
+        The password for <strong>${username}</strong> has been rerolled. Copy the new password now.
+      </div>
+      <div class="dialog-input-group">
+        <label>New Password</label>
+        <input type="text" class="dialog-input mono" value="${newPassword}" readonly>
+      </div>
+      <div class="dialog-actions">
+        <button class="btn-primary" id="copyPassBtn">Copy Password</button>
+        <button class="btn-primary main" id="closeDialogBtn">Done</button>
+      </div>
+    `;
+    dialogOverlay.classList.add('active');
+    setStatus('saved');
+
+    document.getElementById('copyPassBtn').onclick = () => {
+      navigator.clipboard.writeText(newPassword).then(() => {
+        toast('Password copied to clipboard');
+      });
+    };
+    document.getElementById('closeDialogBtn').onclick = closeDialog;
+  }
+
+  /* ---------- Delete Dialogs ---------- */
+  function openDeleteDialog(usernames) {
+    const isMultiple = usernames.length > 1;
+    dialogBox.innerHTML = `
+      <div class="dialog-title">Delete ${isMultiple ? 'Accounts' : 'Account'}</div>
+      <div class="dialog-text">
+        You are about to delete ${isMultiple ? `${usernames.length} accounts` : `<strong>${usernames[0]}</strong>`}. 
+        This action cannot be undone.
+      </div>
+      <div class="dialog-actions">
+        <button class="btn-primary" id="cancelDialog">Cancel</button>
+        <button class="btn-primary destructive" id="confirmDelete">Delete</button>
+      </div>
+    `;
+    dialogOverlay.classList.add('active');
+
+    document.getElementById('cancelDialog').onclick = closeDialog;
+    document.getElementById('confirmDelete').onclick = async () => {
+      try {
+        setStatus('loading');
+        if (isMultiple) {
+          const res = await apiCall({
+            action: 'delete_multiple',
+            targetUsernames: usernames
+          });
+          toast(`Deleted ${res.deletedCount} accounts`);
+        } else {
+          await apiCall({
+            action: 'delete_account',
+            targetUsername: usernames[0]
+          });
+          toast(`Deleted ${usernames[0]}`);
+        }
+
+        fetchAccounts(); // Refresh from backend
+        closeDialog();
+      } catch(e) {
+        toast(e.message, 'error');
+      } finally {
+        setStatus('saved');
+      }
+    };
+  }
+
+  bulkDeleteBtn.addEventListener('click', () => {
+    const users = Array.from(selectedAccounts);
+    if (users.length > 0) openDeleteDialog(users);
+  });
+
+  /* ---------- Logout ---------- */
+  logoutLink.addEventListener('click', () => {
+    clearSession();
+    ownerUsername = "";
+    orgNamespace = "";
+    accountCache = [];
+    showLogin();
+  });
+
+  /* ---------- Boot ---------- */
+  (function boot() {
+    const session = getStoredSession();
+    if (session) enterApp();
+    else showLogin();
+  })();
+</script>
+</body>
+</html>
