@@ -1010,6 +1010,12 @@
 </head>
 <body>
 
+<!--
+  ⚙️  BACKEND CONFIGURATION:
+  Edit the CONFIG block inside the <script> tag at the bottom of this file
+  if you ever need to point the app at a different Supabase project.
+-->
+
 <!-- ============ LIQUID BACKGROUND ============ -->
 <div class="liquid-bg" aria-hidden="true">
   <div class="blob b1"></div>
@@ -1116,14 +1122,44 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-  // Base URL for edge functions
-  const SUPABASE_FUNCTIONS_URL = 'https://lbujqhnadkwqgojbhalw.supabase.co/functions/v1';
-  
+/* ================================================================
+   ⚙️  BACKEND CONFIGURATION
+   ================================================================
+   These values are pre-filled for the Vault X Supabase project.
+   Change them only if you switch to a different Supabase project.
+   ================================================================ */
+const CONFIG = {
+  SUPABASE_URL:           "https://fkkzdwzetthnngolakax.supabase.co",
+  SUPABASE_FUNCTIONS_URL: "https://fkkzdwzetthnngolakax.supabase.co/functions/v1",
+  AUTH_ENDPOINT:          "/auth",
+  MANAGE_ENDPOINT:        "/manage-organizations",
+  ANON_KEY:               ""
+};
+/* ================================================================ */
+
+/* ================================================================
+   📡  APIs THIS FILE CALLS — IMPLEMENTED ON THE BACKEND
+
+   POST  <SUPABASE_FUNCTIONS_URL><AUTH_ENDPOINT>
+         body: { action: "register" | "login", username, password }
+         returns: { success, userId, username, token }
+
+   POST  <SUPABASE_FUNCTIONS_URL><MANAGE_ENDPOINT>
+         headers: { Authorization: "Bearer <token>" }
+         actions:
+           { action: "list_accounts" }
+           { action: "create_organization" }
+           { action: "add_account", subUsername, useRandomPassword, customPassword }
+           { action: "reroll_password", targetUsername }
+           { action: "delete_account", targetUsername }
+           { action: "delete_multiple", targetUsernames: [] }
+   ================================================================ */
+
   // Helper to correctly route to different edge functions dynamically
   function getApiUrl(action) {
-    return action === 'login' || action === 'register'
-      ? `${SUPABASE_FUNCTIONS_URL}/auth`
-      : `${SUPABASE_FUNCTIONS_URL}/manage-organizations`;
+    return (action === "login" || action === "register")
+      ? `${CONFIG.SUPABASE_FUNCTIONS_URL}${CONFIG.AUTH_ENDPOINT}`
+      : `${CONFIG.SUPABASE_FUNCTIONS_URL}${CONFIG.MANAGE_ENDPOINT}`;
   }
 
   /* ---------- Auth / Session ---------- */
